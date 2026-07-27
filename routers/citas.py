@@ -55,8 +55,8 @@ def listar_citas(
 def crear_cita(
     datos: CitaIn, lic: LicActual, db: Annotated[Session, Depends(get_db)]
 ) -> CitaOut:
-    medico_permitido(db, lic, datos.medico_id)
-    paciente_existente(db, datos.paciente_id)
+    medico = medico_permitido(db, lic, datos.medico_id)
+    paciente = paciente_existente(db, datos.paciente_id)
     exigir_libre(db, datos.medico_id, datos.inicio, datos.fin)
 
     cita = Cita(
@@ -70,7 +70,10 @@ def crear_cita(
     )
     db.add(cita)
     db.commit()
-    return a_evento(_cargar(db, cita.id))
+    db.refresh(cita)
+    cita.medico = medico
+    cita.paciente = paciente
+    return a_evento(cita)
 
 
 @router.patch("/{cita_id}", response_model=CitaOut)
@@ -97,7 +100,8 @@ def editar_cita(
         exigir_libre(db, cita.medico_id, inicio, fin, excluir_cita_id=cita.id)
 
     if datos.paciente_id is not None:
-        paciente_existente(db, datos.paciente_id)
+        paciente = paciente_existente(db, datos.paciente_id)
+        cita.paciente = paciente
         cita.paciente_id = datos.paciente_id
 
     cita.inicio = inicio
@@ -107,7 +111,7 @@ def editar_cita(
         cita.notas = datos.notas
 
     db.commit()
-    return a_evento(_cargar(db, cita.id))
+    return a_evento(cita)
 
 
 @router.delete("/{cita_id}", response_model=CitaOut)
@@ -119,4 +123,4 @@ def cancelar_cita(
     medico_permitido(db, lic, cita.medico_id)
     cita.estado = "cancelada"
     db.commit()
-    return a_evento(_cargar(db, cita.id))
+    return a_evento(cita)
