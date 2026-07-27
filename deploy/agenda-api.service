@@ -1,0 +1,20 @@
+# Copiar a /etc/systemd/system/agenda-api.service y ajustar rutas/usuario.
+#   systemctl daemon-reload && systemctl enable --now agenda-api
+
+[Unit]
+Description=Agenda API (FastAPI)
+After=network.target mysql.service
+
+[Service]
+Type=simple
+User=www-data
+WorkingDirectory=/opt/agenda/agenda_api
+Environment="AGENDA_DATABASE_URL=mysql+pymysql://agenda:CAMBIAR@127.0.0.1:3306/agenda?charset=utf8mb4"
+Environment="AGENDA_JWT_SECRET=CAMBIAR-por-un-secreto-largo-de-al-menos-32-bytes"
+Environment="AGENDA_CORS_ORIGINS="
+ExecStart=/opt/agenda/agenda_api/.venv/bin/uvicorn main:app --host 127.0.0.1 --port 8001
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
