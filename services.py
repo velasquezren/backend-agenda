@@ -1,6 +1,11 @@
+from __future__ import annotations
+
 """Reglas de negocio compartidas por los routers."""
 
 from datetime import datetime
+from typing import Optional
+
+
 
 from fastapi import HTTPException, status
 from sqlalchemy import select
@@ -42,8 +47,8 @@ def buscar_solapamiento(
     medico_id: int,
     inicio: datetime,
     fin: datetime,
-    excluir_cita_id: int | None = None,
-) -> Cita | None:
+    excluir_cita_id: Optional[int] = None,
+) -> Optional[Cita]:
     """Regla dura: un medico no puede tener dos citas encimadas.
 
     Dos rangos se solapan si `inicio < otro.fin` y `fin > otro.inicio`.
@@ -65,7 +70,7 @@ def exigir_libre(
     medico_id: int,
     inicio: datetime,
     fin: datetime,
-    excluir_cita_id: int | None = None,
+    excluir_cita_id: Optional[int] = None,
 ) -> None:
     """Lanza 409 con el detalle de la cita en conflicto si el hueco esta ocupado."""
     choque = buscar_solapamiento(db, medico_id, inicio, fin, excluir_cita_id)

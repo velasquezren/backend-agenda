@@ -1,4 +1,9 @@
+from __future__ import annotations
+
 from datetime import date, datetime, time
+from typing import Optional
+
+
 
 from sqlalchemy import (
     Boolean,
@@ -40,7 +45,7 @@ class Medico(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     nombre: Mapped[str] = mapped_column(String(120), nullable=False)
     color: Mapped[str] = mapped_column(String(7), nullable=False, default="#4f46e5")
-    horario_ref: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    horario_ref: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     activo: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime, nullable=False, server_default=func.now()
@@ -73,8 +78,8 @@ class Paciente(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     nombre: Mapped[str] = mapped_column(String(160), nullable=False)
-    telefono: Mapped[str | None] = mapped_column(String(40), nullable=True)
-    notas: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    telefono: Mapped[Optional[str]] = mapped_column(String(40), nullable=True)
+    notas: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime, nullable=False, server_default=func.now()
     )
@@ -110,13 +115,13 @@ class Cita(Base):
     licenciada_id: Mapped[int] = mapped_column(
         ForeignKey("licenciada.id"), nullable=False
     )
-    serie_id: Mapped[int | None] = mapped_column(ForeignKey("serie.id"), nullable=True)
+    serie_id: Mapped[Optional[int]] = mapped_column(ForeignKey("serie.id"), nullable=True)
     inicio: Mapped[datetime] = mapped_column(DateTime, nullable=False)
     fin: Mapped[datetime] = mapped_column(DateTime, nullable=False)
     estado: Mapped[str] = mapped_column(
         Enum(*ESTADOS, name="estado_cita"), nullable=False, default="programada"
     )
-    notas: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    notas: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime, nullable=False, server_default=func.now()
     )

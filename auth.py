@@ -1,4 +1,8 @@
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta, timezone
+from typing import Annotated, Optional
+
+UTC = timezone.utc
+
 from typing import Annotated
 
 import bcrypt
@@ -48,7 +52,7 @@ def crear_token(lic: Licenciada) -> str:
 
 
 def get_current_lic(
-    cred: Annotated[HTTPAuthorizationCredentials | None, Depends(_bearer)],
+    cred: Annotated[Optional[HTTPAuthorizationCredentials], Depends(_bearer)],
     db: Annotated[Session, Depends(get_db)],
 ) -> Licenciada:
     no_autorizada = HTTPException(

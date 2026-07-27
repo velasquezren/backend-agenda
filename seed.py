@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 """Crea las tablas y carga datos minimos de arranque.
+
 
     python seed.py
 

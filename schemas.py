@@ -1,5 +1,9 @@
+from __future__ import annotations
+
 from datetime import date, datetime, time
-from typing import Annotated, Literal
+
+from typing import Annotated, Literal, Optional
+
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
@@ -36,7 +40,7 @@ class MedicoOut(BaseModel):
     id: int
     nombre: str
     color: str
-    horario_ref: str | None = None
+    horario_ref: Optional[str] = None
 
 
 # ---------- pacientes ----------
@@ -47,14 +51,14 @@ class PacienteOut(BaseModel):
 
     id: int
     nombre: str
-    telefono: str | None = None
-    notas: str | None = None
+    telefono: Optional[str] = None
+    notas: Optional[str] = None
 
 
 class PacienteIn(BaseModel):
     nombre: Annotated[str, Field(min_length=1, max_length=160)]
-    telefono: Annotated[str | None, Field(max_length=40)] = None
-    notas: Annotated[str | None, Field(max_length=500)] = None
+    telefono: Annotated[Optional[str], Field(max_length=40)] = None
+    notas: Annotated[Optional[str], Field(max_length=500)] = None
 
     @field_validator("nombre")
     @classmethod
@@ -73,7 +77,7 @@ class CitaIn(BaseModel):
     paciente_id: int
     inicio: datetime
     fin: datetime
-    notas: Annotated[str | None, Field(max_length=500)] = None
+    notas: Annotated[Optional[str], Field(max_length=500)] = None
 
     @model_validator(mode="after")
     def _rango_valido(self):
@@ -83,11 +87,11 @@ class CitaIn(BaseModel):
 
 
 class CitaPatch(BaseModel):
-    inicio: datetime | None = None
-    fin: datetime | None = None
-    paciente_id: int | None = None
-    estado: EstadoCita | None = None
-    notas: Annotated[str | None, Field(max_length=500)] = None
+    inicio: Optional[datetime] = None
+    fin: Optional[datetime] = None
+    paciente_id: Optional[int] = None
+    estado: Optional[EstadoCita] = None
+    notas: Annotated[Optional[str], Field(max_length=500)] = None
 
     @model_validator(mode="after")
     def _rango_valido(self):
@@ -104,9 +108,9 @@ class CitaProps(BaseModel):
     pacienteId: int
     pacienteNombre: str
     licenciadaId: int
-    serieId: int | None
+    serieId: Optional[int]
     estado: EstadoCita
-    notas: str | None
+    notas: Optional[str]
 
 
 class CitaOut(BaseModel):
@@ -131,7 +135,7 @@ class SerieIn(BaseModel):
     hora_fin: time
     fecha_desde: date
     fecha_hasta: date
-    notas: Annotated[str | None, Field(max_length=500)] = None
+    notas: Annotated[Optional[str], Field(max_length=500)] = None
 
     @model_validator(mode="after")
     def _validar(self):
