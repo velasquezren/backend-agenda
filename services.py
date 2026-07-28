@@ -14,6 +14,9 @@ from sqlalchemy.orm import Session
 from models import Cita, Licenciada, Medico, MedicoLicenciada, Paciente
 from schemas import CitaOut, CitaProps
 
+#: Dia ISO que la clinica no atiende (1 = lunes ... 7 = domingo).
+DOMINGO = 7
+
 
 def medico_permitido(db: Session, lic: Licenciada, medico_id: int) -> Medico:
     """El medico existe, esta activo y la lic tiene permiso para agendarle."""
@@ -33,6 +36,19 @@ def medico_permitido(db: Session, lic: Licenciada, medico_id: int) -> Medico:
             "No tienes permiso para agendar con este medico",
         )
     return medico
+
+
+def exigir_dia_habil(inicio: datetime, fin: datetime) -> None:
+    """La clinica no atiende domingos: no se agenda nada ese dia.
+
+    Se comprueba en el servidor y no solo en el calendario porque una cita en
+    domingo existiria, bloquearia el hueco y no se dibujaria en ningun sitio.
+    """
+    if inicio.isoweekday() == DOMINGO or fin.isoweekday() == DOMINGO:
+        raise HTTPException(
+            status.HTTP_422_UNPROCESSABLE_ENTITY,
+            "Los domingos no se atiende: elige otro dia",
+        )
 
 
 def paciente_existente(db: Session, paciente_id: int) -> Paciente:

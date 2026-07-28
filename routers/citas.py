@@ -12,7 +12,13 @@ from auth import LicActual
 from db import get_db
 from models import Cita
 from schemas import CitaIn, CitaOut, CitaPatch
-from services import a_evento, exigir_libre, medico_permitido, paciente_existente
+from services import (
+    a_evento,
+    exigir_dia_habil,
+    exigir_libre,
+    medico_permitido,
+    paciente_existente,
+)
 
 router = APIRouter(prefix="/citas", tags=["citas"])
 
@@ -57,6 +63,7 @@ def crear_cita(
 ) -> CitaOut:
     medico = medico_permitido(db, lic, datos.medico_id)
     paciente = paciente_existente(db, datos.paciente_id)
+    exigir_dia_habil(datos.inicio, datos.fin)
     exigir_libre(db, datos.medico_id, datos.inicio, datos.fin)
 
     cita = Cita(
@@ -97,6 +104,7 @@ def editar_cita(
 
     estado = datos.estado or cita.estado
     if estado != "cancelada":
+        exigir_dia_habil(inicio, fin)
         exigir_libre(db, cita.medico_id, inicio, fin, excluir_cita_id=cita.id)
 
     if datos.paciente_id is not None:

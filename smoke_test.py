@@ -44,6 +44,14 @@ check(
 )
 check("sin token -> 401", c.get("/medicos").status_code == 401)
 
+# Sin esto, el navegador sirve de su cache el GET /citas de siempre y la cita
+# recien guardada no aparece hasta recargar la pagina.
+check(
+    "las respuestas van con Cache-Control: no-store",
+    r.headers.get("cache-control") == "no-store",
+    str(dict(r.headers)),
+)
+
 # --- medicos ---
 r = c.get("/medicos", headers=H)
 medicos = r.json()
@@ -232,6 +240,43 @@ r = c.post(
     headers=H,
 )
 check("serie en fechas libres", len(r.json()["creadas"]) == 3, r.text)
+
+# --- domingos: la clinica no atiende ---
+r = c.post(
+    "/citas",
+    json={**base, "inicio": "2026-08-09T10:00:00", "fin": "2026-08-09T11:00:00"},
+    headers=H,
+)  # 2026-08-09 es domingo
+check("cita en domingo -> 422", r.status_code == 422, r.text)
+
+r = c.patch(
+    f"/citas/{cita1}",
+    json={"inicio": "2026-08-09T10:00:00", "fin": "2026-08-09T11:00:00"},
+    headers=H,
+)
+check("mover una cita a domingo -> 422", r.status_code == 422, r.text)
+
+r = c.post(
+    "/series",
+    json={
+        "medico_id": m1,
+        "paciente_id": pac,
+        "dias_semana": [5, 7],  # viernes y domingo
+        "hora_inicio": "10:00:00",
+        "hora_fin": "11:00:00",
+        "fecha_desde": "2026-11-02",
+        "fecha_hasta": "2026-11-30",
+    },
+    headers=H,
+)
+check("serie que incluye domingo -> 422", r.status_code == 422, r.text)
+
+r = c.post(
+    "/citas",
+    json={**base, "inicio": "2026-08-08T10:00:00", "fin": "2026-08-08T11:00:00"},
+    headers=H,
+)  # sabado si se atiende
+check("el sabado sigue permitido", r.status_code == 201, r.text)
 
 # mover una cita de la serie afecta solo esa
 serie = c.post(

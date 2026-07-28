@@ -130,7 +130,9 @@ class CitaOut(BaseModel):
 class SerieIn(BaseModel):
     medico_id: int
     paciente_id: int
-    dias_semana: list[Annotated[int, Field(ge=1, le=7)]]  # ISO 1=lunes .. 7=domingo
+    # ISO 1=lunes .. 7=domingo; el domingo lo rechaza el validador de abajo,
+    # que da mejor mensaje que un `le=6` a secas.
+    dias_semana: list[Annotated[int, Field(ge=1, le=7)]]
     hora_inicio: time
     hora_fin: time
     fecha_desde: date
@@ -141,6 +143,8 @@ class SerieIn(BaseModel):
     def _validar(self):
         if not self.dias_semana:
             raise ValueError("Elige al menos un dia de la semana")
+        if 7 in self.dias_semana:
+            raise ValueError("Los domingos no se atiende")
         if self.hora_fin <= self.hora_inicio:
             raise ValueError("`hora_fin` debe ser posterior a `hora_inicio`")
         if self.fecha_hasta < self.fecha_desde:
